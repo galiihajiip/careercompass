@@ -461,10 +461,10 @@ def inject_css():
     html, body, [class*="css"] {font-family:'Inter',sans-serif}
     .stApp, .main {color:#334155}
     .main{
-        background: linear-gradient(180deg,#f5f7fa 0%,#eef2f5 100%);
+        background: #ffffff;
     }
     [data-testid="stSidebar"]{
-        background:#f3f6f8;
+        background:#fbfdff;
         border-right:1px solid #d8e0e7;
     }
     [data-testid="stSidebar"] * {
@@ -477,22 +477,38 @@ def inject_css():
         border:1px solid #d0d9e2 !important;
         color:#334155 !important;
     }
-    .header-title{font-size:2.2rem;font-weight:800;text-align:center;padding:1rem 0 .25rem;color:#1f2937;letter-spacing:-0.02em}
-    .header-sub{text-align:center;color:#526173;font-size:1rem;margin-bottom:1.4rem}
+    .header-title{font-size:2.2rem;font-weight:800;text-align:center;padding:1rem 0 .25rem;color:#1e3a8a;letter-spacing:-0.02em}
+    .header-sub{text-align:center;color:#475569;font-size:1rem;margin-bottom:1.4rem}
     .card{background:#ffffff;border-radius:16px;padding:1.5rem;margin:1rem 0;border:1px solid #dbe3ea;box-shadow:0 6px 18px rgba(15,23,42,.05);transition:border-color .2s ease, box-shadow .2s ease}
     .card:hover{border-color:#c6d2de;box-shadow:0 8px 20px rgba(15,23,42,.07)}
-    .top-card{background:linear-gradient(180deg,#ffffff 0%,#f8fafb 100%);border:1px solid #d6dde5;border-left:4px solid #64748b;border-radius:18px;padding:2rem;overflow:hidden;box-shadow:0 8px 22px rgba(15,23,42,.07)}
+    .top-card{background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);border:1px solid #d6dde5;border-left:4px solid #2563eb;border-radius:18px;padding:2rem;overflow:hidden;box-shadow:0 8px 22px rgba(15,23,42,.07)}
     .badge{display:inline-block;padding:.35rem .85rem;border-radius:999px;font-weight:700;font-size:.82rem;color:#fff}
-    .badge-high{background:#3f6f57}.badge-med{background:#8f6b32}.badge-low{background:#8e4f4f}
-    .skill-tag{display:inline-block;background:#edf2f6;padding:.2rem .65rem;border-radius:999px;margin:.15rem;font-size:.8rem;border:1px solid #d5dee7;color:#334155}
-    .skill-tag.matched{background:#e8eff6;border-color:#c2d1e0;color:#2f4d68}
-    .skill-tag.missing{background:#f6ecec;border-color:#e3cbcb;color:#7a4a4a}
-    .metric-box{background:#ffffff;border-radius:14px;padding:1rem;text-align:center;border:1px solid #dbe3ea;box-shadow:0 4px 12px rgba(15,23,42,.05)}
+    .badge-high{background:#2563eb}.badge-med{background:#7c3aed}.badge-low{background:#b91c1c}
+    .skill-tag{display:inline-block;background:#eff6ff;padding:.2rem .65rem;border-radius:999px;margin:.15rem;font-size:.8rem;border:1px solid #cfe0ff;color:#1d4ed8}
+    .skill-tag.matched{background:#eef2ff;border-color:#c7d2fe;color:#4338ca}
+    .skill-tag.missing{background:#fff1f2;border-color:#fecdd3;color:#be123c}
+    .metric-box{background:#ffffff;border-radius:14px;padding:1rem;text-align:center;border:1px solid #dbe3ea;box-shadow:0 4px 12px rgba(15,23,42,.05);border-top:3px solid #2563eb}
     .metric-val{font-size:1.8rem;font-weight:800;color:#1f2937}
-    .metric-lbl{font-size:.78rem;color:#64748b;text-transform:uppercase;letter-spacing:.08em}
-    .section-hdr{display:flex;align-items:center;gap:.5rem;font-size:1.16rem;font-weight:700;color:#273444;margin:1.5rem 0 1rem;padding-bottom:.5rem;border-bottom:1px solid #d2dbe3}
+    .metric-lbl{font-size:.78rem;color:#475569;text-transform:uppercase;letter-spacing:.08em}
+    .section-hdr{display:flex;align-items:center;gap:.5rem;font-size:1.16rem;font-weight:700;color:#1e3a8a;margin:1.5rem 0 1rem;padding-bottom:.5rem;border-bottom:1px solid #d2dbe3}
     .stExpander{border:1px solid #d8e1e8!important;border-radius:12px!important;background:#ffffff!important}
-    .footer-credit{margin-top:2rem;padding:1rem 1.25rem;border-top:1px solid #d8e1e8;color:#5b6876;font-size:.92rem;text-align:center;background:#f8fafb;border-radius:14px}
+    .footer-credit{margin-top:2rem;padding:1rem 1.25rem;border-top:1px solid #d8e1e8;color:#475569;font-size:.92rem;text-align:center;background:#ffffff;border-radius:14px}
+    div[data-testid="stButton"] > button,
+    .stDownloadButton > button {
+        background: linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%) !important;
+        color:#ffffff !important;
+        border:1px solid #1d4ed8 !important;
+        border-radius:10px !important;
+        font-weight:700 !important;
+        box-shadow:0 6px 14px rgba(37,99,235,.18) !important;
+    }
+    div[data-testid="stButton"] > button:hover,
+    .stDownloadButton > button:hover {
+        background: linear-gradient(135deg,#1d4ed8 0%,#1e40af 100%) !important;
+        border-color:#1e40af !important;
+        color:#ffffff !important;
+    }
+    .stRadio [role="radiogroup"], .stCheckbox [role="group"] {color:#334155}
     </style>""", unsafe_allow_html=True)
 
 
@@ -582,7 +598,8 @@ def render_others(recs):
     st.markdown('<div class="section-hdr">Other Recommendations</div>', unsafe_allow_html=True)
     labels = {1: "Second choice", 2: "Third choice", 3: "Fourth choice", 4: "Fifth choice"}
     for i, rec in enumerate(recs[1:], start=1):
-        sal = rec["salary_range"]
+        salary_low, salary_high = rec["salary_range"]
+        sal = f"${salary_low:,.0f} - ${salary_high:,.0f}"
         with st.expander(f"{labels.get(i, 'Additional option')} #{i+1}: {rec['name']}  -  {rec['score']}%"):
             c1, c2, c3 = st.columns(3)
             c1.metric("Salary", sal)
@@ -655,11 +672,11 @@ def main():
         c1.download_button("Export JSON", engine.export_report(), "career_report.json", "application/json", use_container_width=True)
         c2.download_button("Export Text", json.dumps([{"career":r["name"],"score":r["score"]} for r in recs], indent=2), "career_summary.txt", "text/plain", use_container_width=True)
     elif not st.session_state.generated:
-        st.markdown('<div class="card" style="text-align:center;padding:2.5rem"><h2 style="color:#0f172a">Welcome to CareerCompass</h2><p style="color:#475569;max-width:600px;margin:auto">Fill in your profile on the sidebar, select your skills, and click <b>Analyze Career Match</b> to discover your ideal career path.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="card" style="text-align:center;padding:2.5rem;background:#ffffff"><h2 style="color:#1e3a8a;margin-bottom:.6rem">Welcome to CareerCompass</h2><p style="color:#475569;max-width:600px;margin:auto;font-size:1rem;line-height:1.7">Fill in your profile on the sidebar, select your skills, and click <b>Analyze Career Match</b> to discover your ideal career path.</p></div>', unsafe_allow_html=True)
         st.markdown('<div class="section-hdr">How It Works</div>', unsafe_allow_html=True)
         c1,c2,c3 = st.columns(3)
         for col,(ic,t,d) in zip([c1,c2,c3],[("01","Build Your Profile","Enter your name, email, and select your technical skills."),("02","Analysis","The algorithm matches your profile against 15+ career paths."),("03","Get Results","Receive personalised recommendations with scores and insights.")]):
-            col.markdown(f'<div class="card" style="text-align:center"><div style="font-size:2rem;font-weight:800;color:#2563eb">{ic}</div><h3 style="color:#0f172a">{t}</h3><p style="color:#475569">{d}</p></div>', unsafe_allow_html=True)
+            col.markdown(f'<div class="card" style="text-align:center;background:#ffffff"><div style="font-size:1.55rem;font-weight:800;color:#2563eb;margin-bottom:.75rem">{ic}</div><h3 style="color:#0f172a;margin-bottom:.5rem">{t}</h3><p style="color:#475569;line-height:1.7">{d}</p></div>', unsafe_allow_html=True)
 
     st.markdown('<div class="footer-credit">Developed by Galih Aji Pangestu | NPM 24081010123 | OOP Class C</div>', unsafe_allow_html=True)
 
