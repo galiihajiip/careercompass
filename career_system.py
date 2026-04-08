@@ -620,9 +620,16 @@ def render_profile(info):
 def render_top(rec):
     sal = rec["salary_range"]
     gap = rec.get("gap_analysis", {"matched": [], "missing": [], "coverage": 0})
+    matched_html = stags(gap["matched"], gap["matched"]) if gap["matched"] else '<span class="skill-tag">No required skills matched yet</span>'
+    missing_html = stags(gap["missing"], [], "missing") if gap["missing"] else '<span class="skill-tag matched">All required skills are covered</span>'
     learning_links = "".join(
         f'<a href="{item["resource"]}" target="_blank" style="padding:.35rem .7rem;border-radius:999px;background:#eff6ff;border:1px solid #cfe0ff;color:#1d4ed8;text-decoration:none;font-size:.82rem;font-weight:600">{item["skill"]}</a>'
         for item in rec.get("learning_recommendations", [])
+    )
+    learning_section_html = (
+        f'<div style="margin-top:.45rem;display:flex;flex-wrap:wrap;gap:.5rem">{learning_links}</div>'
+        if learning_links
+        else '<div style="margin-top:.45rem;color:#166534;font-size:.9rem">No additional learning required for core skills.</div>'
     )
     st.markdown('<div class="section-hdr">Top Recommendation</div>', unsafe_allow_html=True)
     st.markdown(
@@ -644,18 +651,18 @@ def render_top(rec):
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.85rem;margin-top:.6rem">
             <div style="border:1px solid #dbe3ea;border-radius:12px;padding:.85rem;background:#f8fbff">
                 <div style="font-weight:700;color:#166534;margin-bottom:.4rem">Matched Skills</div>
-                {stags(gap["matched"], gap["matched"])}
+                {matched_html}
             </div>
             <div style="border:1px solid #dbe3ea;border-radius:12px;padding:.85rem;background:#fff8f8">
                 <div style="font-weight:700;color:#b91c1c;margin-bottom:.4rem">Missing Skills</div>
-                {stags(gap["missing"], [], "missing")}
+                {missing_html}
             </div>
         </div>
         <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center;margin-top:.75rem">
             <div style="color:#475569;font-size:.92rem">Coverage: <b style="color:#0f172a">{gap.get("coverage", 0)}%</b></div>
             <div style="color:#1d4ed8;font-weight:700;font-size:.92rem">Learning Recommendations</div>
         </div>
-        <div style="margin-top:.45rem;display:flex;flex-wrap:wrap;gap:.5rem">{learning_links}</div>
+        {learning_section_html}
         </div>''',
         unsafe_allow_html=True,
     )
