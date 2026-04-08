@@ -73,6 +73,25 @@ LEVEL_MATRIX = {
     ("Advanced","Advanced"):1.2,
 }
 
+LEARNING_RESOURCES = {
+    "Python": "https://roadmap.sh/python",
+    "JavaScript": "https://roadmap.sh/javascript",
+    "TypeScript": "https://roadmap.sh/typescript",
+    "React": "https://roadmap.sh/react",
+    "Node.js": "https://roadmap.sh/nodejs",
+    "SQL": "https://roadmap.sh/sql",
+    "Docker": "https://roadmap.sh/devops",
+    "Kubernetes": "https://roadmap.sh/devops",
+    "AWS": "https://roadmap.sh/aws",
+    "Cloud Computing": "https://roadmap.sh/cloud",
+    "Machine Learning": "https://roadmap.sh/ai",
+    "Deep Learning": "https://roadmap.sh/ai",
+    "Data Visualization": "https://roadmap.sh/ux-design",
+    "UI/UX Design": "https://roadmap.sh/ux-design",
+    "Cybersecurity": "https://roadmap.sh/cyber-security",
+    "Microservices": "https://roadmap.sh/software-architecture",
+}
+
 
 # ═════════════════════════════════════════════════════════════════════════════
 # CLASS 1: USER (BASE CLASS) — Encapsulation & Validation
@@ -410,20 +429,40 @@ class CareerEngine(SkillProfile):
             parts.append(f"Consider developing: {', '.join(missing)}.")
         return " ".join(parts) if parts else "A solid career option based on your profile."
 
+    def generate_gap_analysis(self, career: dict) -> dict:
+        """Return matched and missing required skills for a career."""
+        matched = [s for s in career["required_skills"] if s in self._skills]
+        missing = [s for s in career["required_skills"] if s not in self._skills]
+        coverage = round((len(matched) / len(career["required_skills"])) * 100, 1) if career["required_skills"] else 0.0
+        return {"matched": matched, "missing": missing, "coverage": coverage}
+
+    def get_learning_recommendations(self, missing_skills: list) -> list:
+        """Map missing skills to learning links for quick upskilling."""
+        return [
+            {
+                "skill": skill,
+                "resource": LEARNING_RESOURCES.get(skill, "https://roadmap.sh/"),
+            }
+            for skill in missing_skills
+        ]
+
     def generate_recommendations(self) -> list:
         """Generate top 3-5 career recommendations sorted by score (desc)."""
         scored = []
         for name, data in self._career_database.items():
             score = self.calculate_career_match_score(data)
+            gap = self.generate_gap_analysis(data)
             scored.append({
                 "name": name, "score": score,
                 "salary_range": data["salary_range"],
                 "growth_outlook": data["growth_outlook"],
                 "description": data["description"],
-                "matched_skills": [s for s in data["required_skills"] if s in self._skills],
-                "missing_skills": [s for s in data["required_skills"] if s not in self._skills],
+                "matched_skills": gap["matched"],
+                "missing_skills": gap["missing"],
+                "gap_analysis": gap,
                 "pref_matched": [s for s in data["preferred_skills"] if s in self._skills],
                 "pref_missing": [s for s in data["preferred_skills"] if s not in self._skills],
+                "learning_recommendations": self.get_learning_recommendations(gap["missing"]),
                 "interest_field": data["interest_field"],
                 "min_level": data["min_skill_level"],
                 "work_compat": data["work_pref_compat"].get(self._work_preference, 0.9),
@@ -447,6 +486,39 @@ class CareerEngine(SkillProfile):
 
     def export_report(self) -> str:
         return json.dumps({"profile": self.display_info(), "recommendations": self._recommendations}, indent=2, default=str)
+
+    def export_markdown_report(self) -> str:
+        if not self._recommendations:
+            return "# CareerCompass AI Report\n\nNo recommendations have been generated yet."
+
+        top = self._recommendations[0]
+        gap = top.get("gap_analysis", {"matched": [], "missing": [], "coverage": 0})
+        learning_lines = []
+        for item in top.get("learning_recommendations", []):
+            learning_lines.append(f'- [{item["skill"]}]({item["resource"]})')
+
+        return (
+            "# CareerCompass AI Report\n\n"
+            "## Profile Summary\n"
+            f'- Name: {self._name}\n'
+            f'- Email: {self._email}\n'
+            f'- Skill Level: {self._skill_level}\n'
+            f'- Interest Field: {self._interest_field}\n'
+            f'- Work Preference: {self._work_preference}\n\n'
+            "## Top Recommendation\n"
+            f'- Career: {top["name"]}\n'
+            f'- Score: {top["score"]}%\n'
+            f'- Salary Range: ${top["salary_range"][0]:,} - ${top["salary_range"][1]:,}\n'
+            f'- Growth Outlook: {top["growth_outlook"]}\n'
+            f'- Explanation: {top["explanation"]}\n\n'
+            "## Career Gap Analysis\n"
+            f'- Matched Skills: {", ".join(gap["matched"]) if gap["matched"] else "None"}\n'
+            f'- Missing Skills: {", ".join(gap["missing"]) if gap["missing"] else "None"}\n'
+            f'- Coverage: {gap["coverage"]}%\n\n'
+            "## Learning Recommendations\n"
+            + ("\n".join(learning_lines) if learning_lines else "- No missing skills detected.")
+            + "\n"
+        )
 
     def __str__(self):
         return f"CareerEngine('{self._name}', skills={len(self._skills)}, pref='{self._work_preference}')"
@@ -479,20 +551,20 @@ def inject_css():
     }
     .header-title{font-size:2.2rem;font-weight:800;text-align:center;padding:1rem 0 .25rem;color:#1e3a8a;letter-spacing:-0.02em}
     .header-sub{text-align:center;color:#475569;font-size:1rem;margin-bottom:1.4rem}
-    .card{background:#ffffff;border-radius:16px;padding:1.5rem;margin:1rem 0;border:1px solid #dbe3ea;box-shadow:0 6px 18px rgba(15,23,42,.05);transition:border-color .2s ease, box-shadow .2s ease}
+    .card{background:#ffffff;border-radius:14px;padding:1.25rem;margin:.85rem 0;border:1px solid #dbe3ea;box-shadow:0 6px 18px rgba(15,23,42,.05);transition:border-color .2s ease, box-shadow .2s ease}
     .card:hover{border-color:#c6d2de;box-shadow:0 8px 20px rgba(15,23,42,.07)}
-    .top-card{background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);border:1px solid #d6dde5;border-left:4px solid #2563eb;border-radius:18px;padding:2rem;overflow:hidden;box-shadow:0 8px 22px rgba(15,23,42,.07)}
+    .top-card{background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);border:1px solid #d6dde5;border-left:4px solid #2563eb;border-radius:18px;padding:1.35rem;overflow:hidden;box-shadow:0 8px 22px rgba(15,23,42,.07)}
     .badge{display:inline-block;padding:.35rem .85rem;border-radius:999px;font-weight:700;font-size:.82rem;color:#fff}
     .badge-high{background:#2563eb}.badge-med{background:#7c3aed}.badge-low{background:#b91c1c}
     .skill-tag{display:inline-block;background:#eff6ff;padding:.2rem .65rem;border-radius:999px;margin:.15rem;font-size:.8rem;border:1px solid #cfe0ff;color:#1d4ed8}
     .skill-tag.matched{background:#eef2ff;border-color:#c7d2fe;color:#4338ca}
     .skill-tag.missing{background:#fff1f2;border-color:#fecdd3;color:#be123c}
-    .metric-box{background:#ffffff;border-radius:14px;padding:1rem;text-align:center;border:1px solid #dbe3ea;box-shadow:0 4px 12px rgba(15,23,42,.05);border-top:3px solid #2563eb}
+    .metric-box{background:#ffffff;border-radius:14px;padding:.85rem;text-align:center;border:1px solid #dbe3ea;box-shadow:0 4px 12px rgba(15,23,42,.05);border-top:3px solid #2563eb}
     .metric-val{font-size:1.8rem;font-weight:800;color:#1f2937}
     .metric-lbl{font-size:.78rem;color:#475569;text-transform:uppercase;letter-spacing:.08em}
-    .section-hdr{display:flex;align-items:center;gap:.5rem;font-size:1.16rem;font-weight:700;color:#1e3a8a;margin:1.5rem 0 1rem;padding-bottom:.5rem;border-bottom:1px solid #d2dbe3}
+    .section-hdr{display:flex;align-items:center;gap:.5rem;font-size:1.08rem;font-weight:700;color:#1e3a8a;margin:1.15rem 0 .8rem;padding-bottom:.45rem;border-bottom:1px solid #d2dbe3}
     .stExpander{border:1px solid #d8e1e8!important;border-radius:12px!important;background:#ffffff!important}
-    .footer-credit{margin-top:2rem;padding:1rem 1.25rem;border-top:1px solid #d8e1e8;color:#475569;font-size:.92rem;text-align:center;background:#ffffff;border-radius:14px}
+    .footer-credit{margin-top:1.5rem;padding:.9rem 1.1rem;border-top:1px solid #d8e1e8;color:#475569;font-size:.9rem;text-align:center;background:#ffffff;border-radius:14px}
     div[data-testid="stButton"] > button,
     .stDownloadButton > button {
         background: linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%) !important;
@@ -547,22 +619,43 @@ def render_profile(info):
 
 def render_top(rec):
     sal = rec["salary_range"]
+    gap = rec.get("gap_analysis", {"matched": [], "missing": [], "coverage": 0})
+    learning_links = "".join(
+        f'<a href="{item["resource"]}" target="_blank" style="padding:.35rem .7rem;border-radius:999px;background:#eff6ff;border:1px solid #cfe0ff;color:#1d4ed8;text-decoration:none;font-size:.82rem;font-weight:600">{item["skill"]}</a>'
+        for item in rec.get("learning_recommendations", [])
+    )
     st.markdown('<div class="section-hdr">Top Recommendation</div>', unsafe_allow_html=True)
     st.markdown(
         f'''<div class="top-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
-            <h2 style="color:#0f172a;margin:0">{rec["name"]}</h2>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap">
+            <div>
+                <h2 style="color:#0f172a;margin:0 0 .25rem 0">{rec["name"]}</h2>
+                <p style="color:#64748b;margin:0;font-size:.92rem">{rec["interest_field"]}</p>
+            </div>
             <span>Match: {score_badge(rec["score"])}</span>
         </div>
-        <p style="color:#475569;margin:.4rem 0 1rem">{rec["description"]}</p>
-        <div style="display:flex;gap:1rem;flex-wrap:wrap;font-size:.95rem;color:#0f172a">
-            <span>Salary: {sal}</span>
-            <span>Growth: <b>{rec["growth_outlook"]}</b></span>
-            <span>Work fit: {rec["work_compat"]*100:.0f}%</span>
+        <p style="color:#475569;margin:.45rem 0 .9rem;line-height:1.65">{rec["description"]}</p>
+        <div style="display:flex;gap:.65rem;flex-wrap:wrap;font-size:.9rem;color:#0f172a">
+            <span style="padding:.35rem .65rem;border:1px solid #dbe3ea;border-radius:999px;background:#fff">Salary: {sal}</span>
+            <span style="padding:.35rem .65rem;border:1px solid #dbe3ea;border-radius:999px;background:#fff">Growth: <b>{rec["growth_outlook"]}</b></span>
+            <span style="padding:.35rem .65rem;border:1px solid #dbe3ea;border-radius:999px;background:#fff">Work fit: {rec["work_compat"]*100:.0f}%</span>
         </div>
-        <p style="color:#334155;font-style:italic;margin-top:.8rem">{rec["explanation"]}</p>
-        <div style="margin-top:.75rem"><b style="color:#166534">Matching:</b> {stags(rec["matched_skills"], rec["matched_skills"])}</div>
-        <div style="margin-top:.5rem"><b style="color:#b91c1c">To Develop:</b> {stags(rec["missing_skills"], [], "missing")}</div>
+        <p style="color:#334155;font-style:italic;margin-top:.7rem;margin-bottom:.7rem">{rec["explanation"]}</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.85rem;margin-top:.6rem">
+            <div style="border:1px solid #dbe3ea;border-radius:12px;padding:.85rem;background:#f8fbff">
+                <div style="font-weight:700;color:#166534;margin-bottom:.4rem">Matched Skills</div>
+                {stags(gap["matched"], gap["matched"])}
+            </div>
+            <div style="border:1px solid #dbe3ea;border-radius:12px;padding:.85rem;background:#fff8f8">
+                <div style="font-weight:700;color:#b91c1c;margin-bottom:.4rem">Missing Skills</div>
+                {stags(gap["missing"], [], "missing")}
+            </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center;margin-top:.75rem">
+            <div style="color:#475569;font-size:.92rem">Coverage: <b style="color:#0f172a">{gap.get("coverage", 0)}%</b></div>
+            <div style="color:#1d4ed8;font-weight:700;font-size:.92rem">Learning Recommendations</div>
+        </div>
+        <div style="margin-top:.45rem;display:flex;flex-wrap:wrap;gap:.5rem">{learning_links}</div>
         </div>''',
         unsafe_allow_html=True,
     )
@@ -606,8 +699,14 @@ def render_others(recs):
             c2.metric("Growth", rec["growth_outlook"])
             c3.metric("Work Fit", f"{rec['work_compat']*100:.0f}%")
             st.markdown(f"**Why this fits:** {rec['explanation']}")
-            st.markdown(f"**Your Skills:** {stags(rec['matched_skills'], rec['matched_skills'])}", unsafe_allow_html=True)
-            st.markdown(f"**To Develop:** {stags(rec['missing_skills'], [], 'missing')}", unsafe_allow_html=True)
+            st.markdown(f"**Career Gap Analysis:**")
+            left, right = st.columns(2)
+            left.markdown(f"**Matched**\n\n{stags(rec['gap_analysis']['matched'], rec['gap_analysis']['matched'])}", unsafe_allow_html=True)
+            right.markdown(f"**Missing**\n\n{stags(rec['gap_analysis']['missing'], [], 'missing')}", unsafe_allow_html=True)
+            st.markdown(f"**Coverage:** {rec['gap_analysis']['coverage']}%")
+            if rec.get("learning_recommendations"):
+                st.markdown("**Learning Recommendations:**")
+                st.markdown(" ".join([f'[{item["skill"]}]({item["resource"]})' for item in rec["learning_recommendations"]]), unsafe_allow_html=True)
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -668,15 +767,16 @@ def main():
         render_chart(recs)
         render_others(recs)
         st.divider()
-        c1, c2 = st.columns(2)
-        c1.download_button("Export JSON", engine.export_report(), "career_report.json", "application/json", use_container_width=True)
-        c2.download_button("Export Text", json.dumps([{"career":r["name"],"score":r["score"]} for r in recs], indent=2), "career_summary.txt", "text/plain", use_container_width=True)
+        c1, c2, c3 = st.columns(3)
+        c1.download_button("Download JSON", engine.export_report(), "career_report.json", "application/json", use_container_width=True)
+        c2.download_button("Download Summary", json.dumps([{"career":r["name"],"score":r["score"]} for r in recs], indent=2), "career_summary.txt", "text/plain", use_container_width=True)
+        c3.download_button("Download Report", engine.export_markdown_report(), "career_report.md", "text/markdown", use_container_width=True)
     elif not st.session_state.generated:
-        st.markdown('<div class="card" style="text-align:center;padding:2.5rem;background:#ffffff"><h2 style="color:#1e3a8a;margin-bottom:.6rem">Welcome to CareerCompass</h2><p style="color:#475569;max-width:600px;margin:auto;font-size:1rem;line-height:1.7">Fill in your profile on the sidebar, select your skills, and click <b>Analyze Career Match</b> to discover your ideal career path.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="card" style="text-align:center;padding:2rem;background:#ffffff"><h2 style="color:#1e3a8a;margin-bottom:.45rem">Welcome to CareerCompass</h2><p style="color:#475569;max-width:620px;margin:auto;font-size:1rem;line-height:1.65">Fill in your profile on the sidebar, select your skills, and click <b>Analyze Career Match</b> to discover your ideal career path.</p></div>', unsafe_allow_html=True)
         st.markdown('<div class="section-hdr">How It Works</div>', unsafe_allow_html=True)
         c1,c2,c3 = st.columns(3)
         for col,(ic,t,d) in zip([c1,c2,c3],[("01","Build Your Profile","Enter your name, email, and select your technical skills."),("02","Analysis","The algorithm matches your profile against 15+ career paths."),("03","Get Results","Receive personalised recommendations with scores and insights.")]):
-            col.markdown(f'<div class="card" style="text-align:center;background:#ffffff"><div style="font-size:1.55rem;font-weight:800;color:#2563eb;margin-bottom:.75rem">{ic}</div><h3 style="color:#0f172a;margin-bottom:.5rem">{t}</h3><p style="color:#475569;line-height:1.7">{d}</p></div>', unsafe_allow_html=True)
+            col.markdown(f'<div class="card" style="text-align:center;background:#ffffff"><div style="font-size:1.45rem;font-weight:800;color:#2563eb;margin-bottom:.55rem">{ic}</div><h3 style="color:#0f172a;margin-bottom:.35rem;font-size:1.02rem">{t}</h3><p style="color:#475569;line-height:1.6;font-size:.95rem">{d}</p></div>', unsafe_allow_html=True)
 
     st.markdown('<div class="footer-credit">Developed by Galih Aji Pangestu | NPM 24081010123 | OOP Class C</div>', unsafe_allow_html=True)
 
