@@ -1,6 +1,6 @@
-# 🧭 CareerCompass AI — Career Recommendation System
+# 🧭 CareerCompass AI — Career Recommendation + Action Plan CRUD
 
-A **production-grade** career recommendation system built with Python, Streamlit, and advanced OOP principles.
+A **production-grade** career recommendation and career action-plan management system built with Python, Streamlit, and advanced OOP principles.
 
 ## ✨ Features
 
@@ -11,6 +11,9 @@ A **production-grade** career recommendation system built with Python, Streamlit
 - **Modern Dashboard UI** with dark theme, custom CSS, and Plotly charts
 - **Input Validation** with real-time feedback
 - **Export** recommendations as JSON or text
+- **EAS/UAS CRUD Module** for creating, reading, updating, and deleting career action plans
+- **Polymorphic Action Plans**: technical skill, soft skill, and portfolio project plans
+- **Class Relationships**: inheritance, aggregation, composition, dependency, and association
 
 ## 🏗️ OOP Concepts Demonstrated
 
@@ -18,7 +21,9 @@ A **production-grade** career recommendation system built with Python, Streamlit
 |---------|---------------|
 | **Encapsulation** | Protected attributes (`_name`, `_email`), `@property` decorators |
 | **Inheritance** | Multilevel: `User → SkillProfile → CareerEngine` via `super()` |
-| **Polymorphism** | `display_info()` overridden in each class |
+| **Polymorphism** | `display_info()`, `get_plan_type()`, and `priority_score()` overridden in derived classes |
+| **CRUD** | `CareerPlanManager` and `CareerPlanRepository` manage action-plan data |
+| **Class Relationships** | Inheritance, aggregation, composition, dependency, association |
 | **Abstraction** | Complex scoring hidden behind `generate_recommendations()` |
 
 ## 🚀 Quick Start
@@ -32,9 +37,12 @@ streamlit run career_system.py
 
 ```
 ets-oop/
-├── career_system.py    # Main application (single file)
-├── requirements.txt    # Dependencies
-└── README.md           # This file
+├── career_system.py                  # Main Streamlit application
+├── LAPORAN_UTS_CAREERCOMPASS.md      # UTS documentation
+├── LAPORAN_UAS_CAREER_ACTION_PLAN.md # UAS/EAS documentation
+├── SCRIPT_VIDEO_DEMO_UAS.md          # UAS demo video script
+├── requirements.txt                  # Dependencies
+└── README.md                         # This file
 ```
 
 ## 🧠 Scoring Algorithm
