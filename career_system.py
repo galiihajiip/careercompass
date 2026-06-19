@@ -916,7 +916,7 @@ def render_crud_module(recs):
         "tetapi pengelolaan data rencana aksi karier menggunakan CRUD, polimorfisme, dan relasi antar class."
     )
 
-    create_tab, read_tab = st.tabs(["Create", "Read"])
+    create_tab, read_tab, update_tab, delete_tab = st.tabs(["Create", "Read", "Update", "Delete"])
 
     with create_tab:
         with st.form("create_plan_form", clear_on_submit=True):
@@ -959,6 +959,56 @@ def render_crud_module(recs):
                 st.dataframe(pd.DataFrame(audit_entries), use_container_width=True, hide_index=True)
             else:
                 st.caption("Belum ada aktivitas CRUD.")
+
+    with update_tab:
+        plans = manager.get_plans()
+        if not plans:
+            st.warning("Tidak ada data untuk diperbarui.")
+        else:
+            selected_id = st.selectbox(
+                "Pilih data yang akan di-update",
+                [plan.plan_id for plan in plans],
+                format_func=lambda pid: f"{pid} - {manager.repository.read_by_id(pid).title}",
+            )
+            selected = manager.repository.read_by_id(selected_id)
+            with st.form("update_plan_form"):
+                c1, c2 = st.columns(2)
+                title = c1.text_input("Judul Rencana", value=selected.title)
+                target_career = c2.selectbox(
+                    "Target Karier",
+                    career_options,
+                    index=career_options.index(selected.target_career) if selected.target_career in career_options else 0,
+                )
+                focus_area = c1.text_input("Fokus Area", value=selected.focus_area)
+                deadline_value = date.fromisoformat(selected.deadline) if selected.deadline else date.today()
+                deadline = c2.date_input("Deadline", value=deadline_value)
+                progress = c1.slider("Progress", 0, 100, selected.progress)
+                status = c2.selectbox("Status", statuses, index=statuses.index(selected.status) if selected.status in statuses else 0)
+                notes = st.text_area("Catatan", value=selected.notes)
+                updated = st.form_submit_button("Update Data", use_container_width=True)
+                if updated:
+                    manager.update_plan(selected_id, title, target_career, focus_area, deadline, progress, status, notes)
+                    st.success("Data rencana aksi berhasil diperbarui.")
+                    st.rerun()
+
+    with delete_tab:
+        plans = manager.get_plans()
+        if not plans:
+            st.warning("Tidak ada data untuk dihapus.")
+        else:
+            selected_id = st.selectbox(
+                "Pilih data yang akan dihapus",
+                [plan.plan_id for plan in plans],
+                format_func=lambda pid: f"{pid} - {manager.repository.read_by_id(pid).title}",
+                key="delete_plan_select",
+            )
+            selected = manager.repository.read_by_id(selected_id)
+            st.error(f"Data terpilih: {selected.title} ({selected.get_plan_type()})")
+            confirm = st.checkbox("Saya yakin ingin menghapus data ini")
+            if st.button("Delete Data", use_container_width=True, disabled=not confirm):
+                manager.delete_plan(selected_id)
+                st.success("Data rencana aksi berhasil dihapus.")
+                st.rerun()
 
 
 # ═════════════════════════════════════════════════════════════════════════════
