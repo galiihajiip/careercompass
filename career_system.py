@@ -903,6 +903,64 @@ def render_others(recs):
                 st.markdown(" ".join([f'[{item["skill"]}]({item["resource"]})' for item in rec["learning_recommendations"]]), unsafe_allow_html=True)
 
 
+def render_crud_module(recs):
+    """Render UAS/EAS CRUD module for career action plans."""
+    manager = st.session_state.plan_manager
+    career_options = [r["name"] for r in recs] if recs else ["General Career Target"]
+    plan_types = ["Technical Skill", "Soft Skill", "Portfolio Project"]
+    statuses = ["Planned", "In Progress", "Done", "Paused"]
+
+    st.markdown('<div class="section-hdr">EAS/UAS CRUD Career Action Plan</div>', unsafe_allow_html=True)
+    st.info(
+        "Modul ini melanjutkan project UTS dengan studi kasus berbeda: bukan hanya rekomendasi karier, "
+        "tetapi pengelolaan data rencana aksi karier menggunakan CRUD, polimorfisme, dan relasi antar class."
+    )
+
+    create_tab, read_tab = st.tabs(["Create", "Read"])
+
+    with create_tab:
+        with st.form("create_plan_form", clear_on_submit=True):
+            c1, c2 = st.columns(2)
+            title = c1.text_input("Judul Rencana", placeholder="Contoh: Belajar Docker untuk Backend Developer")
+            plan_type = c2.selectbox("Tipe Rencana", plan_types)
+            target_career = c1.selectbox("Target Karier", career_options)
+            focus_area = c2.text_input("Fokus Area", placeholder="Contoh: Docker, interview, portfolio API")
+            deadline = c1.date_input("Deadline", value=date.today())
+            progress = c2.slider("Progress", 0, 100, 0)
+            status = c1.selectbox("Status", statuses)
+            notes = c2.text_area("Catatan", placeholder="Langkah belajar, resource, atau target output")
+            submitted = st.form_submit_button("Create Data", use_container_width=True)
+            if submitted:
+                if len(title.strip()) < 3 or len(focus_area.strip()) < 2:
+                    st.error("Judul rencana dan fokus area wajib diisi dengan benar.")
+                else:
+                    manager.create_plan(plan_type, title, target_career, focus_area, deadline, progress, status, notes)
+                    st.success("Data rencana aksi berhasil dibuat.")
+                    st.rerun()
+
+    with read_tab:
+        plans = manager.get_plans()
+        if not plans:
+            st.warning("Belum ada data rencana aksi. Tambahkan data melalui tab Create.")
+        else:
+            summaries = [plan.display_summary() for plan in plans]
+            st.dataframe(pd.DataFrame(summaries), use_container_width=True, hide_index=True)
+            st.download_button(
+                "Download Data CRUD (JSON)",
+                manager.export_plans(),
+                "career_action_plans.json",
+                "application/json",
+                use_container_width=True,
+            )
+
+            st.markdown("**Log Aktivitas CRUD**")
+            audit_entries = manager.audit.entries()
+            if audit_entries:
+                st.dataframe(pd.DataFrame(audit_entries), use_container_width=True, hide_index=True)
+            else:
+                st.caption("Belum ada aktivitas CRUD.")
+
+
 # ═════════════════════════════════════════════════════════════════════════════
 # MAIN APPLICATION
 # ═════════════════════════════════════════════════════════════════════════════
