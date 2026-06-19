@@ -916,7 +916,7 @@ def render_crud_module(recs):
         "tetapi pengelolaan data rencana aksi karier menggunakan CRUD, polimorfisme, dan relasi antar class."
     )
 
-    create_tab, read_tab, update_tab, delete_tab = st.tabs(["Create", "Read", "Update", "Delete"])
+    create_tab, read_tab, update_tab, delete_tab, oop_tab = st.tabs(["Create", "Read", "Update", "Delete", "Konsep PBO"])
 
     with create_tab:
         with st.form("create_plan_form", clear_on_submit=True):
@@ -1009,6 +1009,23 @@ def render_crud_module(recs):
                 manager.delete_plan(selected_id)
                 st.success("Data rencana aksi berhasil dihapus.")
                 st.rerun()
+
+    with oop_tab:
+        st.markdown("""
+        **Polimorfisme**
+
+        Class `TechnicalSkillPlan`, `SoftSkillPlan`, dan `PortfolioPlan` sama-sama mewarisi `CareerActionPlan`,
+        tetapi masing-masing meng-override method `get_plan_type()` dan `priority_score()`. Saat data ditampilkan,
+        aplikasi memanggil `plan.display_summary()` untuk berbagai object plan secara seragam.
+
+        **Minimal 3 hubungan antar class yang diterapkan**
+
+        - **Inheritance**: `CareerActionPlan` diwarisi oleh `TechnicalSkillPlan`, `SoftSkillPlan`, dan `PortfolioPlan`.
+        - **Aggregation**: `CareerPlanRepository` menyimpan kumpulan object `CareerActionPlan`.
+        - **Composition**: `CareerPlanManager` memiliki object `AuditTrail` untuk mencatat aktivitas CRUD.
+        - **Dependency**: `CareerPlanManager` bergantung pada `CareerPlanFactory` untuk membuat object plan sesuai tipe.
+        - **Association**: data action plan terhubung dengan target karier hasil rekomendasi dari `CareerEngine`.
+        """)
 
 
 # ═════════════════════════════════════════════════════════════════════════════
