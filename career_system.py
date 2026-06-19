@@ -9,6 +9,9 @@ Version: 1.0.0
 Demonstrates:
     ✓ Multilevel Inheritance (User → SkillProfile → CareerEngine)
     ✓ Method Overriding (display_info())
+    ✓ CRUD Career Action Plan for EAS/UAS
+    ✓ Polymorphism (CareerActionPlan variants)
+    ✓ Class Relationships: Inheritance, Aggregation, Composition, Dependency, Association
     ✓ Encapsulation (protected attributes, property decorators)
     ✓ Complex Scoring Algorithm (weighted, not simple if-else)
     ✓ Modern Dashboard UI with custom CSS
@@ -19,6 +22,8 @@ import streamlit as st
 import re
 import time
 import json
+import uuid
+from datetime import date
 import pandas as pd
 import plotly.graph_objects as go
 from typing import List, Dict, Optional
