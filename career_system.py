@@ -530,6 +530,188 @@ class CareerEngine(SkillProfile):
 
 
 # ═════════════════════════════════════════════════════════════════════════════
+# EAS/UAS MODULE: CRUD CAREER ACTION PLAN
+# ═════════════════════════════════════════════════════════════════════════════
+class CareerActionPlan:
+    """
+    Base entity for the UAS/EAS CRUD module.
+
+    Relationship concepts:
+        - Inheritance: subclassed by TechnicalSkillPlan, SoftSkillPlan, PortfolioPlan
+        - Aggregation: stored by CareerPlanRepository
+        - Association: connected to the selected target career recommendation
+    """
+
+    def __init__(self, title, target_career, focus_area, deadline, progress=0, status="Planned", plan_id=None, notes=""):
+        self.plan_id = plan_id or str(uuid.uuid4())[:8]
+        self.title = title.strip()
+        self.target_career = target_career.strip()
+        self.focus_area = focus_area.strip()
+        self.deadline = str(deadline)
+        self.progress = int(progress)
+        self.status = status
+        self.notes = notes.strip()
+
+    def update(self, title, target_career, focus_area, deadline, progress, status, notes):
+        self.title = title.strip()
+        self.target_career = target_career.strip()
+        self.focus_area = focus_area.strip()
+        self.deadline = str(deadline)
+        self.progress = int(progress)
+        self.status = status
+        self.notes = notes.strip()
+
+    def get_plan_type(self) -> str:
+        return "General"
+
+    def priority_score(self) -> int:
+        return max(1, 100 - self.progress)
+
+    def display_summary(self) -> dict:
+        return {
+            "ID": self.plan_id,
+            "Type": self.get_plan_type(),
+            "Title": self.title,
+            "Target Career": self.target_career,
+            "Focus Area": self.focus_area,
+            "Deadline": self.deadline,
+            "Progress": f"{self.progress}%",
+            "Status": self.status,
+            "Priority": self.priority_score(),
+            "Notes": self.notes,
+        }
+
+
+class TechnicalSkillPlan(CareerActionPlan):
+    """Derived plan for technical upskilling. Overrides polymorphic methods."""
+
+    def get_plan_type(self) -> str:
+        return "Technical Skill"
+
+    def priority_score(self) -> int:
+        return max(1, 120 - self.progress)
+
+
+class SoftSkillPlan(CareerActionPlan):
+    """Derived plan for interview, communication, and collaboration readiness."""
+
+    def get_plan_type(self) -> str:
+        return "Soft Skill"
+
+    def priority_score(self) -> int:
+        return max(1, 90 - self.progress)
+
+
+class PortfolioPlan(CareerActionPlan):
+    """Derived plan for building visible proof of work."""
+
+    def get_plan_type(self) -> str:
+        return "Portfolio Project"
+
+    def priority_score(self) -> int:
+        return max(1, 110 - self.progress)
+
+
+class CareerPlanFactory:
+    """Dependency class used by the repository to create the correct plan object."""
+
+    @staticmethod
+    def create(plan_type, title, target_career, focus_area, deadline, progress=0, status="Planned", plan_id=None, notes=""):
+        classes = {
+            "Technical Skill": TechnicalSkillPlan,
+            "Soft Skill": SoftSkillPlan,
+            "Portfolio Project": PortfolioPlan,
+        }
+        plan_class = classes.get(plan_type, CareerActionPlan)
+        return plan_class(title, target_career, focus_area, deadline, progress, status, plan_id, notes)
+
+
+class AuditTrail:
+    """Composition object owned by CareerPlanManager to record CRUD activity."""
+
+    def __init__(self):
+        self._events = []
+
+    def record(self, action, plan_title):
+        self._events.append({
+            "action": action,
+            "plan": plan_title,
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+        })
+
+    def entries(self) -> list:
+        return list(self._events)
+
+
+class CareerPlanRepository:
+    """Repository that aggregates CareerActionPlan objects and provides CRUD."""
+
+    def __init__(self):
+        self._plans = {}
+
+    def create(self, plan: CareerActionPlan):
+        self._plans[plan.plan_id] = plan
+        return plan
+
+    def read_all(self) -> list:
+        return list(self._plans.values())
+
+    def read_by_id(self, plan_id: str):
+        return self._plans.get(plan_id)
+
+    def update(self, plan_id, title, target_career, focus_area, deadline, progress, status, notes):
+        plan = self.read_by_id(plan_id)
+        if not plan:
+            return None
+        plan.update(title, target_career, focus_area, deadline, progress, status, notes)
+        return plan
+
+    def delete(self, plan_id: str) -> bool:
+        return self._plans.pop(plan_id, None) is not None
+
+
+class CareerPlanManager:
+    """
+    Service class for EAS/UAS.
+
+    Applied class relationships:
+        - Composition: owns AuditTrail
+        - Aggregation: uses CareerPlanRepository containing plan objects
+        - Dependency: asks CareerPlanFactory to build polymorphic plan instances
+    """
+
+    def __init__(self, repository=None):
+        self.repository = repository or CareerPlanRepository()
+        self.audit = AuditTrail()
+
+    def create_plan(self, plan_type, title, target_career, focus_area, deadline, progress, status, notes):
+        plan = CareerPlanFactory.create(plan_type, title, target_career, focus_area, deadline, progress, status, notes=notes)
+        self.repository.create(plan)
+        self.audit.record("CREATE", plan.title)
+        return plan
+
+    def get_plans(self) -> list:
+        return self.repository.read_all()
+
+    def update_plan(self, plan_id, title, target_career, focus_area, deadline, progress, status, notes):
+        plan = self.repository.update(plan_id, title, target_career, focus_area, deadline, progress, status, notes)
+        if plan:
+            self.audit.record("UPDATE", plan.title)
+        return plan
+
+    def delete_plan(self, plan_id) -> bool:
+        plan = self.repository.read_by_id(plan_id)
+        title = plan.title if plan else "Unknown"
+        deleted = self.repository.delete(plan_id)
+        if deleted:
+            self.audit.record("DELETE", title)
+        return deleted
+
+    def export_plans(self) -> str:
+        return json.dumps([plan.display_summary() for plan in self.get_plans()], indent=2)
+
+
+# ═════════════════════════════════════════════════════════════════════════════
 # CUSTOM CSS
 # ═════════════════════════════════════════════════════════════════════════════
 def inject_css():
