@@ -1034,11 +1034,13 @@ def render_crud_module(recs):
 def main():
     st.set_page_config(page_title="CareerCompass AI", page_icon="C", layout="wide", initial_sidebar_state="expanded")
     inject_css()
-    st.markdown('<div class="header-title">CareerCompass AI</div>', unsafe_allow_html=True)
-    st.markdown('<div class="header-sub">Discover your ideal career path with a data-driven recommendation engine</div>', unsafe_allow_html=True)
+    st.markdown('<div class="header-title">CareerCompass AI + Career Action Plan</div>', unsafe_allow_html=True)
+    st.markdown('<div class="header-sub">Career recommendation and CRUD action-plan management for EAS/UAS OOP</div>', unsafe_allow_html=True)
 
     for k, v in {"recommendations": None, "engine": None, "generated": False}.items():
         if k not in st.session_state: st.session_state[k] = v
+    if "plan_manager" not in st.session_state:
+        st.session_state.plan_manager = CareerPlanManager()
 
     with st.sidebar:
         st.markdown("### Your Profile")
@@ -1078,24 +1080,31 @@ def main():
             except ValueError as ve:
                 st.sidebar.error(f"{ve}")
 
-    if st.session_state.generated and st.session_state.recommendations:
-        engine = st.session_state.engine
-        recs = st.session_state.recommendations
-        render_profile(engine.display_info())
-        render_top(recs[0])
-        render_chart(recs)
-        render_others(recs)
-        st.divider()
-        c1, c2, c3 = st.columns(3)
-        c1.download_button("Download JSON", engine.export_report(), "career_report.json", "application/json", use_container_width=True)
-        c2.download_button("Download Summary", json.dumps([{"career":r["name"],"score":r["score"]} for r in recs], indent=2), "career_summary.txt", "text/plain", use_container_width=True)
-        c3.download_button("Download Report", engine.export_markdown_report(), "career_report.md", "text/markdown", use_container_width=True)
-    elif not st.session_state.generated:
-        st.markdown('<div class="card" style="text-align:center;padding:2rem;background:#ffffff"><h2 style="color:#1e3a8a;margin-bottom:.45rem">Welcome to CareerCompass</h2><p style="color:#475569;max-width:620px;margin:auto;font-size:1rem;line-height:1.65">Fill in your profile on the sidebar, select your skills, and click <b>Analyze Career Match</b> to discover your ideal career path.</p></div>', unsafe_allow_html=True)
-        st.markdown('<div class="section-hdr">How It Works</div>', unsafe_allow_html=True)
-        c1,c2,c3 = st.columns(3)
-        for col,(ic,t,d) in zip([c1,c2,c3],[("01","Build Your Profile","Enter your name, email, and select your technical skills."),("02","Analysis","The algorithm matches your profile against 15+ career paths."),("03","Get Results","Receive personalised recommendations with scores and insights.")]):
-            col.markdown(f'<div class="card" style="text-align:center;background:#ffffff"><div style="font-size:1.45rem;font-weight:800;color:#2563eb;margin-bottom:.55rem">{ic}</div><h3 style="color:#0f172a;margin-bottom:.35rem;font-size:1.02rem">{t}</h3><p style="color:#475569;line-height:1.6;font-size:.95rem">{d}</p></div>', unsafe_allow_html=True)
+    recommendation_tab, crud_tab = st.tabs(["UTS Recommendation System", "EAS CRUD Action Plan"])
+
+    with recommendation_tab:
+        if st.session_state.generated and st.session_state.recommendations:
+            engine = st.session_state.engine
+            recs = st.session_state.recommendations
+            render_profile(engine.display_info())
+            render_top(recs[0])
+            render_chart(recs)
+            render_others(recs)
+            st.divider()
+            c1, c2, c3 = st.columns(3)
+            c1.download_button("Download JSON", engine.export_report(), "career_report.json", "application/json", use_container_width=True)
+            c2.download_button("Download Summary", json.dumps([{"career":r["name"],"score":r["score"]} for r in recs], indent=2), "career_summary.txt", "text/plain", use_container_width=True)
+            c3.download_button("Download Report", engine.export_markdown_report(), "career_report.md", "text/markdown", use_container_width=True)
+        else:
+            st.markdown('<div class="card" style="text-align:center;padding:2rem;background:#ffffff"><h2 style="color:#1e3a8a;margin-bottom:.45rem">Welcome to CareerCompass</h2><p style="color:#475569;max-width:620px;margin:auto;font-size:1rem;line-height:1.65">Fill in your profile on the sidebar, select your skills, and click <b>Analyze Career Match</b> to discover your ideal career path.</p></div>', unsafe_allow_html=True)
+            st.markdown('<div class="section-hdr">How It Works</div>', unsafe_allow_html=True)
+            c1,c2,c3 = st.columns(3)
+            for col,(ic,t,d) in zip([c1,c2,c3],[("01","Build Your Profile","Enter your name, email, and select your technical skills."),("02","Analysis","The algorithm matches your profile against 15+ career paths."),("03","Get Results","Receive personalised recommendations with scores and insights.")]):
+                col.markdown(f'<div class="card" style="text-align:center;background:#ffffff"><div style="font-size:1.45rem;font-weight:800;color:#2563eb;margin-bottom:.55rem">{ic}</div><h3 style="color:#0f172a;margin-bottom:.35rem;font-size:1.02rem">{t}</h3><p style="color:#475569;line-height:1.6;font-size:.95rem">{d}</p></div>', unsafe_allow_html=True)
+
+    with crud_tab:
+        recs = st.session_state.recommendations if st.session_state.recommendations else []
+        render_crud_module(recs)
 
     st.markdown('<div class="footer-credit">Developed by Galih Aji Pangestu | NPM 24081010123 | OOP Class C</div>', unsafe_allow_html=True)
 
@@ -1105,8 +1114,10 @@ def main():
 # ═════════════════════════════════════════════════════════════════════════════
 # 1. ENCAPSULATION  – Protected attrs (_name, _email etc.), @property decorators
 # 2. INHERITANCE    – Multilevel: User → SkillProfile → CareerEngine via super()
-# 3. POLYMORPHISM   – display_info() overridden in each class, extends via super()
-# 4. ABSTRACTION    – Complex scoring hidden behind generate_recommendations()
+# 3. POLYMORPHISM   – display_info(), get_plan_type(), priority_score() overridden
+# 4. CRUD           – CareerPlanManager supports create/read/update/delete action plans
+# 5. RELATIONSHIPS  – Inheritance, aggregation, composition, dependency, association
+# 6. ABSTRACTION    – Complex scoring hidden behind generate_recommendations()
 
 if __name__ == "__main__":
     main()
